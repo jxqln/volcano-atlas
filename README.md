@@ -3,11 +3,11 @@
 ## Demo
 ![Demo Graphic](demo1.png)
 
-[**Live Demo Graphic**]([https://jacquelinehf-xray-classifier.hf.space/](https://jacqueline.dev/volcanoatlas/))
+[**Live Demo Graphic**](https://jacquelinehf-xray-classifier.hf.space/](https://jacqueline.dev/volcanoatlas/)
 
 ![Demo Dashboard](demo2.png)
 
-[**Live Demo Dashboard**]([https://jacquelinehf-xray-classifier.hf.space/](https://jacqueline.dev/dashboard/))
+[**Live Demo Dashboard**](https://jacquelinehf-xray-classifier.hf.space/](https://jacqueline.dev/dashboard/)
 
 ## Overview
 This repo contains code to visualize a dataset of volcanic eruption events from the National Centers for Environmental Information, including:
