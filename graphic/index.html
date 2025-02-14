@@ -1,0 +1,116 @@
+<head>
+  <title>Atlas of Volcanic Events</title>
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    #background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background-image: url('bg.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+    #globeViz {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <script type="importmap">{ "imports": {
+    "three": "https://esm.sh/three",
+    "three/": "https://esm.sh/three/"
+  }}</script>
+</head>
+<body>
+  <div id="background"></div>
+  <div id="globeViz"></div>
+  <script type="module">
+    import ThreeGlobe from 'https://esm.sh/three-globe?external=three';
+    import * as THREE from 'https://esm.sh/three';
+    import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js?external=three';
+
+    const veiToColor = (vei) => {
+      const colors = ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026'];
+      return colors[Math.min(Math.floor(vei), colors.length - 1)];
+    };
+
+    const normalizeVEI = (vei, maxVEI) => {
+      return vei / maxVEI;
+    };
+
+    fetch('data.json')
+      .then(response => response.json())
+      .then(data => {
+        const maxVEI = Math.max(...data.points.map(point => point.vei));
+        const gData = data.points.map(point => ({
+          lat: point.latitude,
+          lng: point.longitude,
+          size: normalizeVEI(point.vei, maxVEI),
+          color: veiToColor(point.vei)
+        }));
+
+        const Globe = new ThreeGlobe()
+          .globeImageUrl('https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/The_earth_at_night.jpg/1024px-The_earth_at_night.jpg')
+          .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+          .pointsData(gData)
+          .pointAltitude('size')
+          .pointColor('color');
+
+        // Set up renderer
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('globeViz').appendChild(renderer.domElement);
+
+        // Set up scene
+        const scene = new THREE.Scene();
+        scene.add(Globe);
+        scene.add(new THREE.AmbientLight(0xcccccc, Math.PI));
+        scene.add(new THREE.DirectionalLight(0xffffff, 0.6 * Math.PI));
+
+        // Set up camera
+        const camera = new THREE.PerspectiveCamera();
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        camera.position.z = 500;
+
+        // Set up camera controls
+        const tbControls = new TrackballControls(camera, renderer.domElement);
+        tbControls.minDistance = 101;
+        tbControls.rotateSpeed = 5;
+        tbControls.zoomSpeed = 0.8;
+
+        const rotationSpeed = 0.002;
+
+        // Handle window resize
+        window.onresize = () => {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+
+          renderer.setSize(width, height);
+          tbControls.handleResize();
+        };
+
+        (function animate() {
+          Globe.rotation.y += rotationSpeed;
+
+          tbControls.update();
+          renderer.render(scene, camera);
+          requestAnimationFrame(animate);
+        })();
+      })
+      .catch(error => console.error('Error loading the data:', error));
+  </script>
+</body>
